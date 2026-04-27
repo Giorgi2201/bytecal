@@ -5,11 +5,9 @@ using ByteCal_Back.DTOs;
 namespace ByteCal_Back.Services;
 
 public sealed class OpenFoodFactsProductLookupService(HttpClient httpClient)
-    : IProductLookupService
+    : IOpenFoodFactsService
 {
-    private const string SourceName = "Open Food Facts";
-
-    public async Task<ProductDto?> GetProductByBarcodeAsync(
+    public async Task<OpenFoodFactsProductDto?> LookupByBarcodeAsync(
         string barcode,
         CancellationToken cancellationToken)
     {
@@ -47,21 +45,17 @@ public sealed class OpenFoodFactsProductLookupService(HttpClient httpClient)
             productName = $"Product {barcode}";
         }
 
-        var servingSize = GetString(product, "serving_size");
-        var calories = TryReadCalories(product, out var caloriesUnit);
+        var calories = TryReadCalories(product);
 
         if (calories is null)
         {
             return null;
         }
 
-        return new ProductDto(
+        return new OpenFoodFactsProductDto(
             barcode,
             productName,
-            calories.Value,
-            caloriesUnit,
-            servingSize,
-            SourceName);
+            calories.Value);
     }
 
     public static void ConfigureHttpClient(HttpClient client)
@@ -73,45 +67,40 @@ public sealed class OpenFoodFactsProductLookupService(HttpClient httpClient)
             new MediaTypeWithQualityHeaderValue("application/json"));
     }
 
-    private static double? TryReadCalories(
-        JsonElement product,
-        out string caloriesUnit)
+    private static float? TryReadCalories(JsonElement product)
     {
-        caloriesUnit = "kcal per 100g";
-
         if (!product.TryGetProperty("nutriments", out var nutriments))
         {
             return null;
         }
 
-        if (TryGetDouble(nutriments, "energy-kcal_serving", out var servingCalories))
+        if (TryGetFloat(nutriments, "energy-kcal_serving", out var servingCalories))
         {
-            caloriesUnit = "kcal per serving";
             return servingCalories;
         }
 
-        if (TryGetDouble(nutriments, "energy-kcal_100g", out var caloriesPer100g))
+        if (TryGetFloat(nutriments, "energy-kcal_100g", out var caloriesPer100g))
         {
             return caloriesPer100g;
         }
 
-        if (TryGetDouble(nutriments, "energy-kcal", out var calories))
+        if (TryGetFloat(nutriments, "energy-kcal", out var calories))
         {
             return calories;
         }
 
-        if (TryGetDouble(nutriments, "energy_100g", out var kilojoulesPer100g))
+        if (TryGetFloat(nutriments, "energy_100g", out var kilojoulesPer100g))
         {
-            return Math.Round(kilojoulesPer100g / 4.184, 1);
+            return MathF.Round(kilojoulesPer100g / 4.184f, 1);
         }
 
         return null;
     }
 
-    private static bool TryGetDouble(
+    private static bool TryGetFloat(
         JsonElement element,
         string propertyName,
-        out double value)
+        out float value)
     {
         value = 0;
 
@@ -122,12 +111,12 @@ public sealed class OpenFoodFactsProductLookupService(HttpClient httpClient)
 
         if (property.ValueKind == JsonValueKind.Number)
         {
-            return property.TryGetDouble(out value);
+            return property.TryGetSingle(out value);
         }
 
         if (property.ValueKind == JsonValueKind.String)
         {
-            return double.TryParse(property.GetString(), out value);
+            return float.TryParse(property.GetString(), out value);
         }
 
         return false;
@@ -147,16 +136,8 @@ public sealed class OpenFoodFactsProductLookupService(HttpClient httpClient)
 
         return null;
     }
-
-    private static string? GetString(JsonElement element, string propertyName)
-    {
-        if (!element.TryGetProperty(propertyName, out var property))
-        {
-            return null;
-        }
-
-        return property.ValueKind == JsonValueKind.String
+    private static string? GetString(JsonElement element, string propertyName) =>
+        element.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.String
             ? property.GetString()
             : null;
-    }
 }

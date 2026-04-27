@@ -56,13 +56,11 @@ export function ProductCard({
       <Text style={styles.label}>Scanned product</Text>
       <Text style={styles.name}>{product.name}</Text>
       <Text style={styles.meta}>Barcode {product.barcode}</Text>
+      <Text style={styles.meta}>Source: {product.source}</Text>
       <View style={styles.calorieRow}>
         <Text style={styles.calories}>{Math.round(product.calories)}</Text>
-        <Text style={styles.calorieUnit}>{product.caloriesUnit}</Text>
+        <Text style={styles.calorieUnit}>kcal</Text>
       </View>
-      {product.servingSize ? (
-        <Text style={styles.meta}>Serving: {product.servingSize}</Text>
-      ) : null}
       <Pressable style={styles.button} onPress={onAdd}>
         <Text style={styles.buttonText}>Add to Daily Intake</Text>
       </Pressable>

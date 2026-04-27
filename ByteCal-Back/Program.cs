@@ -8,8 +8,9 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddDbContext<ByteCalDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ByteCal")));
-builder.Services.AddHttpClient<IProductLookupService, OpenFoodFactsProductLookupService>(
+builder.Services.AddHttpClient<IOpenFoodFactsService, OpenFoodFactsProductLookupService>(
     OpenFoodFactsProductLookupService.ConfigureHttpClient);
+builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DevelopmentMobileClient", policy =>

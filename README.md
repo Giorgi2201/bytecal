@@ -51,6 +51,35 @@ Example:
 curl http://localhost:5166/api/products/737628064502
 ```
 
+Manual entry endpoint:
+
+```txt
+POST http://localhost:5166/api/products
+```
+
+Example request:
+
+```json
+{
+  "barcode": "4860102080557",
+  "name": "Adjika Classic",
+  "calories": 120
+}
+```
+
+Example success response:
+
+```json
+{
+  "id": 7,
+  "barcode": "4860102080557",
+  "name": "Adjika Classic",
+  "calories": 120,
+  "source": "LOCAL",
+  "createdAt": "2026-04-27T12:35:00.000Z"
+}
+```
+
 The backend is already wired for SQL Server through EF Core. Update the connection string in `ByteCal-Back/appsettings.json` if your SQL Server instance differs:
 
 ```json
@@ -59,10 +88,9 @@ The backend is already wired for SQL Server through EF Core. Update the connecti
 }
 ```
 
-When persistence endpoints are added later, create the database with:
+Apply committed EF migrations:
 
 ```sh
-dotnet ef migrations add InitialCreate
 dotnet ef database update
 ```
 

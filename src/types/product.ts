@@ -1,10 +1,10 @@
 export type Product = {
+  id: number;
   barcode: string;
   name: string;
   calories: number;
-  caloriesUnit: string;
-  servingSize?: string | null;
-  source: string;
+  source: 'OFF' | 'LOCAL';
+  createdAt: string;
 };
 
 export type ProductLookupResult = {

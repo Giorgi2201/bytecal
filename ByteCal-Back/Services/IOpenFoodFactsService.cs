@@ -2,9 +2,9 @@ using ByteCal_Back.DTOs;
 
 namespace ByteCal_Back.Services;
 
-public interface IProductLookupService
+public interface IOpenFoodFactsService
 {
-    Task<ProductDto?> GetProductByBarcodeAsync(
+    Task<OpenFoodFactsProductDto?> LookupByBarcodeAsync(
         string barcode,
         CancellationToken cancellationToken);
 }

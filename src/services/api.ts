@@ -5,12 +5,12 @@ const API_BASE_URL = 'http://localhost:5166';
 const CACHE_PREFIX = 'bytecal:product:';
 
 type ProductResponse = {
+  id: number;
   barcode: string;
   name: string;
   calories: number;
-  caloriesUnit: string;
-  servingSize?: string | null;
-  source: string;
+  source: 'OFF' | 'LOCAL';
+  createdAt: string;
 };
 
 const productCacheKey = (barcode: string) => `${CACHE_PREFIX}${barcode}`;
@@ -24,32 +24,59 @@ export async function lookupProduct(
     return { product: cachedProduct };
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/products/${barcode}`);
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/products/${barcode}`);
 
-  if (response.status === 404) {
-    return {
-      product: null,
-      message: 'We could not find this barcode yet.',
-    };
+    if (response.status === 404) {
+      return {
+        product: null,
+        message: 'Product not found',
+      };
+    }
+
+    if (!response.ok) {
+      throw new Error('Product lookup failed. Please try again.');
+    }
+
+    const product = await mapProductResponse(response);
+    await AsyncStorage.setItem(productCacheKey(barcode), JSON.stringify(product));
+
+    return { product };
+  } catch (error) {
+    if (cachedProduct) {
+      return {
+        product: cachedProduct,
+        message: 'Backend unavailable. Loaded from local cache.',
+      };
+    }
+    throw error;
+  }
+}
+
+export async function createProductManually(input: {
+  barcode: string;
+  name: string;
+  calories: number;
+}): Promise<Product> {
+  const response = await fetch(`${API_BASE_URL}/api/products`, {
+    body: JSON.stringify(input),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    method: 'POST',
+  });
+
+  if (response.status === 409) {
+    throw new Error('This barcode already exists.');
   }
 
   if (!response.ok) {
-    throw new Error('Product lookup failed. Please try again.');
+    throw new Error('Could not save product. Try again.');
   }
 
-  const data = (await response.json()) as ProductResponse;
-  const product: Product = {
-    barcode: data.barcode,
-    name: data.name,
-    calories: data.calories,
-    caloriesUnit: data.caloriesUnit,
-    servingSize: data.servingSize,
-    source: data.source,
-  };
-
-  await AsyncStorage.setItem(productCacheKey(barcode), JSON.stringify(product));
-
-  return { product };
+  const product = await mapProductResponse(response);
+  await AsyncStorage.setItem(productCacheKey(product.barcode), JSON.stringify(product));
+  return product;
 }
 
 async function getCachedProduct(barcode: string): Promise<Product | null> {
@@ -65,4 +92,16 @@ async function getCachedProduct(barcode: string): Promise<Product | null> {
     await AsyncStorage.removeItem(productCacheKey(barcode));
     return null;
   }
+}
+
+async function mapProductResponse(response: Response): Promise<Product> {
+  const data = (await response.json()) as ProductResponse;
+  return {
+    id: data.id,
+    barcode: data.barcode,
+    name: data.name,
+    calories: data.calories,
+    source: data.source,
+    createdAt: data.createdAt,
+  };
 }

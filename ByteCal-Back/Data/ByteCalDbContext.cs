@@ -10,6 +10,10 @@ public sealed class ByteCalDbContext(DbContextOptions<ByteCalDbContext> options)
 
     public DbSet<FoodEntry> FoodEntries => Set<FoodEntry>();
 
+    public DbSet<Product> Products => Set<Product>();
+
+    public DbSet<ScanLog> ScanLogs => Set<ScanLog>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -31,6 +35,26 @@ public sealed class ByteCalDbContext(DbContextOptions<ByteCalDbContext> options)
                 .WithMany(user => user.FoodEntries)
                 .HasForeignKey(entry => entry.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.HasKey(product => product.Id);
+            entity.HasIndex(product => product.Barcode).IsUnique();
+            entity.Property(product => product.Barcode).HasMaxLength(64).IsRequired();
+            entity.Property(product => product.Name).HasMaxLength(256).IsRequired();
+            entity.Property(product => product.Calories).IsRequired();
+            entity.Property(product => product.Source).HasMaxLength(16).IsRequired();
+            entity.Property(product => product.CreatedAt).IsRequired();
+        });
+
+        modelBuilder.Entity<ScanLog>(entity =>
+        {
+            entity.HasKey(scanLog => scanLog.Id);
+            entity.Property(scanLog => scanLog.Barcode).HasMaxLength(64).IsRequired();
+            entity.Property(scanLog => scanLog.Timestamp).IsRequired();
+            entity.HasIndex(scanLog => scanLog.Barcode);
+            entity.HasIndex(scanLog => scanLog.Timestamp);
         });
     }
 }
