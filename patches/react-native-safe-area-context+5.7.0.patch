@@ -1,0 +1,27 @@
+diff --git a/node_modules/react-native-safe-area-context/ios/Fabric/RNCSafeAreaProviderComponentView.mm b/node_modules/react-native-safe-area-context/ios/Fabric/RNCSafeAreaProviderComponentView.mm
+index f315ccd..2cb52d8 100644
+--- a/node_modules/react-native-safe-area-context/ios/Fabric/RNCSafeAreaProviderComponentView.mm
++++ b/node_modules/react-native-safe-area-context/ios/Fabric/RNCSafeAreaProviderComponentView.mm
+@@ -103,20 +103,8 @@ using namespace facebook::react;
+ 
+   if (_eventEmitter) {
+     RNCSafeAreaProviderEventEmitter::OnInsetsChange event = {
+-        .insets =
+-            {
+-                .top = safeAreaInsets.top,
+-                .left = safeAreaInsets.left,
+-                .bottom = safeAreaInsets.bottom,
+-                .right = safeAreaInsets.right,
+-            },
+-        .frame =
+-            {
+-                .x = frame.origin.x,
+-                .y = frame.origin.y,
+-                .width = frame.size.width,
+-                .height = frame.size.height,
+-            },
++        .insets = {safeAreaInsets.top, safeAreaInsets.left, safeAreaInsets.bottom, safeAreaInsets.right},
++        .frame = {frame.origin.x, frame.origin.y, frame.size.width, frame.size.height},
+     };
+     std::static_pointer_cast<RNCSafeAreaProviderEventEmitter const>(_eventEmitter)->onInsetsChange(event);
+   }

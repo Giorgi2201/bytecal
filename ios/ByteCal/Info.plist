@@ -35,7 +35,7 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>ByteCal needs access to your location to provide location-based calendar events.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>ByteCal needs camera access to scan product barcodes.</string>
 	<key>UILaunchStoryboardName</key>
