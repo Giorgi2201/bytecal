@@ -1,97 +1,128 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# ByteCal
 
-# Getting Started
+ByteCal is a React Native CLI + ASP.NET Core MVP for scanning food barcodes, looking products up through Open Food Facts, and tracking the current day's calorie total in local app state.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Project Structure
 
-## Step 1: Start Metro
+- `ByteCal/` - React Native CLI mobile app with TypeScript.
+- `ByteCal-Back/` - ASP.NET Core Web API.
+- `ByteCal-Back/Controllers` - API endpoints.
+- `ByteCal-Back/Services` - Open Food Facts product lookup logic.
+- `ByteCal-Back/DTOs` - API response contracts.
+- `ByteCal-Back/Models` - EF Core-ready `User` and `FoodEntry` models.
+- `ByteCal-Back/Data` - EF Core `ByteCalDbContext`.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Requirements
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+- Node.js 22+
+- React Native CLI iOS environment on macOS
+- Xcode
+- CocoaPods
+- .NET SDK 10
+- SQL Server for future persistence work
+
+The app does not use Expo.
+
+## Backend Setup
+
+From the backend folder:
 
 ```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
+cd ../ByteCal-Back
+dotnet restore
+dotnet run --launch-profile http
 ```
 
-## Step 2: Build and run your app
+The API runs at:
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+```txt
+http://localhost:5166
 ```
 
-### iOS
+Product lookup endpoint:
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+```txt
+GET http://localhost:5166/api/products/{barcode}
+```
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+Example:
 
 ```sh
+curl http://localhost:5166/api/products/737628064502
+```
+
+The backend is already wired for SQL Server through EF Core. Update the connection string in `ByteCal-Back/appsettings.json` if your SQL Server instance differs:
+
+```json
+"ConnectionStrings": {
+  "ByteCal": "Server=localhost;Database=ByteCal;Trusted_Connection=True;TrustServerCertificate=True"
+}
+```
+
+When persistence endpoints are added later, create the database with:
+
+```sh
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+```
+
+## iOS Setup
+
+From the React Native app folder on macOS:
+
+```sh
+cd ByteCal
+npm install
+cd ios
 bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
 bundle exec pod install
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+Start Metro:
 
 ```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
+cd ..
+npm start
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+Open the iOS project in Xcode:
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+```sh
+open ios/ByteCal.xcworkspace
+```
 
-## Step 3: Modify your app
+Select an iPhone simulator or physical iPhone, then press Run.
 
-Now that you have successfully run the app, let's make changes!
+## iOS Camera Permission
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+`ios/ByteCal/Info.plist` includes:
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+```xml
+<key>NSCameraUsageDescription</key>
+<string>ByteCal needs camera access to scan product barcodes.</string>
+```
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+Barcode scanning works best on a physical iPhone. Simulators do not provide a real camera feed.
 
-## Congratulations! :tada:
+## Mobile App Behavior
 
-You've successfully run and modified your React Native App. :partying_face:
+- Shows a daily calorie total at the top.
+- Opens a Vision Camera scanner for EAN and UPC barcodes.
+- Prevents duplicate scans from repeatedly triggering API requests.
+- Looks products up through `GET /api/products/{barcode}`.
+- Caches successful product lookups locally with AsyncStorage.
+- Displays product name, calories, serving size, and source.
+- Adds calories to today's in-memory total with `Add to Daily Intake`.
 
-### Now what?
+## Local Networking Notes
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+The app points to `http://localhost:5166` in `src/services/api.ts`.
 
-# Troubleshooting
+- iOS Simulator: `localhost` usually resolves to your Mac.
+- Physical iPhone: replace `localhost` with your Mac's LAN IP address, for example `http://192.168.1.20:5166`.
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+If you change the backend URL, update:
 
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+```ts
+const API_BASE_URL = 'http://localhost:5166';
+```
