@@ -1,0 +1,68 @@
+# Normalise all text files to LF in the repository.
+# Windows checkouts get CRLF via core.autocrlf; everything stored as LF.
+* text=auto eol=lf
+
+# --- Source / config files (explicit LF) ---
+*.ts        text eol=lf
+*.tsx       text eol=lf
+*.js        text eol=lf
+*.jsx       text eol=lf
+*.json      text eol=lf
+*.md        text eol=lf
+*.txt       text eol=lf
+*.xml       text eol=lf
+*.yaml      text eol=lf
+*.yml       text eol=lf
+*.sh        text eol=lf
+*.env       text eol=lf
+*.env.*     text eol=lf
+*.config.js text eol=lf
+*.eslintrc  text eol=lf
+Gemfile     text eol=lf
+Podfile     text eol=lf
+Podfile.lock text eol=lf
+
+# --- iOS project files (must stay LF — CRLF breaks Xcode) ---
+*.pbxproj          text eol=lf
+*.plist            text eol=lf
+*.storyboard       text eol=lf
+*.xib              text eol=lf
+*.xcscheme         text eol=lf
+*.xcsettings       text eol=lf
+*.xcworkspacedata  text eol=lf
+*.xcconfig         text eol=lf
+Contents.json      text eol=lf
+
+# --- Android project files ---
+*.gradle    text eol=lf
+*.kt        text eol=lf
+*.java      text eol=lf
+*.xml       text eol=lf
+
+# --- .NET / C# ---
+*.cs        text eol=lf
+*.csproj    text eol=lf
+*.sln       text eol=lf
+*.props     text eol=lf
+*.targets   text eol=lf
+appsettings*.json text eol=lf
+
+# --- Binary files (never touch line endings) ---
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.webp   binary
+*.pdf    binary
+*.zip    binary
+*.tar    binary
+*.gz     binary
+*.ttf    binary
+*.otf    binary
+*.woff   binary
+*.woff2  binary
+*.jar    binary
+*.keystore binary
+*.jsbundle binary
+*.map    binary
