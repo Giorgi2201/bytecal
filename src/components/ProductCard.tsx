@@ -43,9 +43,9 @@ export function ProductCard({
     return (
       <View style={styles.card}>
         <Text style={styles.label}>Ready to scan</Text>
-        <Text style={styles.emptyTitle}>Point the camera at a barcode.</Text>
+        <Text style={styles.emptyTitle}>Tap Scan Product to start.</Text>
         <Text style={styles.mutedText}>
-          ByteCal supports EAN and UPC barcodes from packaged foods.
+          ByteCal scans EAN and UPC barcodes from packaged foods.
         </Text>
       </View>
     );
