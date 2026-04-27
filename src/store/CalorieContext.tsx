@@ -14,11 +14,19 @@ type FoodEntry = {
   timestamp: string;
 };
 
+export type ScanFeedback = {
+  barcode: string;
+  errorMessage: string | null;
+  infoMessage: string | null;
+};
+
 type CalorieContextValue = {
   currentProduct: Product | null;
   dailyTotal: number;
   entries: FoodEntry[];
+  scanFeedback: ScanFeedback | null;
   setCurrentProduct: (product: Product | null) => void;
+  setScanFeedback: (feedback: ScanFeedback | null) => void;
   addCurrentProductToDailyIntake: () => void;
 };
 
@@ -29,6 +37,7 @@ const CalorieContext = createContext<CalorieContextValue | undefined>(
 export function CalorieProvider({ children }: PropsWithChildren) {
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
   const [entries, setEntries] = useState<FoodEntry[]>([]);
+  const [scanFeedback, setScanFeedback] = useState<ScanFeedback | null>(null);
 
   const addCurrentProductToDailyIntake = useCallback(() => {
     if (!currentProduct) {
@@ -59,10 +68,18 @@ export function CalorieProvider({ children }: PropsWithChildren) {
       currentProduct,
       dailyTotal,
       entries,
+      scanFeedback,
       setCurrentProduct,
+      setScanFeedback,
       addCurrentProductToDailyIntake,
     }),
-    [addCurrentProductToDailyIntake, currentProduct, dailyTotal, entries],
+    [
+      addCurrentProductToDailyIntake,
+      currentProduct,
+      dailyTotal,
+      entries,
+      scanFeedback,
+    ],
   );
 
   return (

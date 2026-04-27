@@ -1,132 +1,151 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Alert,
-  Animated,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { CalorieHeader } from '../components/CalorieHeader';
-import { ProductCard } from '../components/ProductCard';
-import { RootStackParamList } from '../navigation/types';
+import React, { useMemo } from 'react';
+import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { GlassCard } from '../components/GlassCard';
 import { useCalories } from '../store/CalorieContext';
+import { useAppTheme } from '../theme/ThemeContext';
 
-type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
+export function HomeScreen() {
+  const { currentProduct, dailyTotal, scanFeedback, addCurrentProductToDailyIntake } = useCalories();
+  const { theme, unit } = useAppTheme();
 
-export function HomeScreen({ navigation, route }: HomeScreenProps) {
-  const { currentProduct, dailyTotal, setCurrentProduct, addCurrentProductToDailyIntake } = useCalories();
-  const [isLookupLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [infoMessage, setInfoMessage] = useState<string | null>(null);
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const formattedTotal = useMemo(() => {
+    if (unit === 'kJ') {
+      return Math.round(dailyTotal * 4.184);
+    }
 
-  const animateProductCard = useCallback(() => {
-    fadeAnim.setValue(0);
-    Animated.timing(fadeAnim, {
-      duration: 240,
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim]);
+    return Math.round(dailyTotal);
+  }, [dailyTotal, unit]);
 
-  useEffect(() => {
-    const scanResult = route.params?.scanResult;
-
-    if (!scanResult) {
+  const handleAddProduct = () => {
+    if (!currentProduct) {
       return;
     }
 
-    setCurrentProduct(scanResult.product);
-    setErrorMessage(scanResult.errorMessage);
-    setInfoMessage(scanResult.infoMessage);
-    animateProductCard();
-
-    navigation.setParams({ scanResult: undefined });
-  }, [animateProductCard, navigation, route.params, setCurrentProduct]);
-
-  const handleAddProduct = useCallback(() => {
     addCurrentProductToDailyIntake();
     Alert.alert('Added', 'Product calories were added to today.');
-  }, [addCurrentProductToDailyIntake]);
+  };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}>
-        <View style={styles.hero}>
-          <Text style={styles.appName}>ByteCal</Text>
-          <Text style={styles.headline}>Scan food. Track calories.</Text>
-        </View>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={[styles.screenTitle, { color: theme.colors.textPrimary }]}>Today</Text>
 
-        <CalorieHeader dailyTotal={dailyTotal} />
+        <GlassCard style={styles.totalCard}>
+          <Text style={[styles.totalLabel, { color: theme.colors.textSecondary }]}>Daily intake</Text>
+          <View style={styles.totalRow}>
+            <Text style={[styles.totalValue, { color: theme.colors.textPrimary }]}>{formattedTotal}</Text>
+            <Text style={[styles.totalUnit, { color: theme.colors.textSecondary }]}>{unit}</Text>
+          </View>
+        </GlassCard>
 
-        <Pressable style={styles.scanButton} onPress={() => navigation.navigate('Scan')}>
-          <Text style={styles.scanButtonText}>Scan Product</Text>
-        </Pressable>
-
-        <Animated.View style={{ opacity: fadeAnim }}>
-          <ProductCard
-            product={currentProduct}
-            isLoading={isLookupLoading}
-            errorMessage={errorMessage}
-            onAdd={handleAddProduct}
-          />
-        </Animated.View>
-
-        {infoMessage ? <Text style={styles.infoText}>{infoMessage}</Text> : null}
+        <GlassCard>
+          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>Last scanned</Text>
+          {currentProduct ? (
+            <>
+              <Text style={[styles.productName, { color: theme.colors.textPrimary }]}>
+                {currentProduct.name}
+              </Text>
+              <Text style={[styles.productMeta, { color: theme.colors.textSecondary }]}>
+                Barcode {currentProduct.barcode}
+              </Text>
+              <Text style={[styles.productMeta, { color: theme.colors.textSecondary }]}>
+                {Math.round(currentProduct.calories)} kcal
+              </Text>
+              <Text style={[styles.addText, { color: theme.colors.accent }]} onPress={handleAddProduct}>
+                Add to Daily Intake
+              </Text>
+            </>
+          ) : (
+            <Text style={[styles.placeholderText, { color: theme.colors.textSecondary }]}>
+              No product scanned yet. Open the Scan tab to start.
+            </Text>
+          )}
+          {scanFeedback?.errorMessage ? (
+            <Text style={[styles.feedbackText, { color: theme.colors.danger }]}>
+              {scanFeedback.errorMessage}
+            </Text>
+          ) : null}
+          {scanFeedback?.infoMessage ? (
+            <Text style={[styles.feedbackText, { color: theme.colors.success }]}>
+              {scanFeedback.infoMessage}
+            </Text>
+          ) : null}
+        </GlassCard>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  appName: {
-    color: '#12B76A',
-    fontSize: 16,
-    fontWeight: '900',
+  addText: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginTop: 14,
+  },
+  content: {
+    gap: 16,
+    padding: 20,
+    paddingBottom: 120,
+  },
+  feedbackText: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 10,
+  },
+  placeholderText: {
+    fontSize: 15,
+    lineHeight: 21,
+  },
+  productMeta: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 3,
+  },
+  productName: {
+    fontSize: 24,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    marginBottom: 6,
+    marginTop: 4,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  screenTitle: {
+    fontSize: 30,
+    fontWeight: '800',
+    letterSpacing: -0.8,
+    marginBottom: 2,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '700',
     letterSpacing: 0.6,
     marginBottom: 8,
     textTransform: 'uppercase',
   },
-  content: {
-    gap: 18,
-    padding: 20,
-    paddingBottom: 36,
-  },
-  headline: {
-    color: '#101828',
-    fontSize: 34,
-    fontWeight: '900',
-    letterSpacing: -1.2,
-    lineHeight: 39,
-  },
-  hero: {
-    paddingTop: 8,
-  },
-  infoText: {
-    color: '#0B6B44',
-    fontSize: 14,
-    fontWeight: '700',
-    paddingHorizontal: 6,
-  },
-  safeArea: {
-    backgroundColor: '#F9FAFB',
-    flex: 1,
-  },
-  scanButton: {
+  totalCard: {
     alignItems: 'center',
-    backgroundColor: '#101828',
-    borderRadius: 16,
-    paddingVertical: 15,
+    paddingVertical: 8,
   },
-  scanButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '800',
+  totalLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 10,
+  },
+  totalRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  totalUnit: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginTop: 12,
+  },
+  totalValue: {
+    fontSize: 62,
+    fontWeight: '900',
+    letterSpacing: -1.5,
   },
 });

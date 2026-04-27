@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import {
   Camera,
   Code,
@@ -18,26 +18,31 @@ import {
   useCameraPermission,
   useCodeScanner,
 } from 'react-native-vision-camera';
-import { RootStackParamList, ScanResult } from '../navigation/types';
+import { RootTabParamList } from '../navigation/types';
 import { lookupProduct } from '../services/api';
+import { useCalories } from '../store/CalorieContext';
+import { GlassCard } from '../components/GlassCard';
+import { useAppTheme } from '../theme/ThemeContext';
 
-type ScanScreenProps = NativeStackScreenProps<RootStackParamList, 'Scan'>;
+type ScanScreenProps = BottomTabScreenProps<RootTabParamList, 'Scan'>;
 
 const supportedCodeTypes: CodeType[] = ['ean-13', 'ean-8', 'upc-a', 'upc-e'];
 
 export function ScanScreen({ navigation }: ScanScreenProps) {
   const isFocused = useIsFocused();
+  const { theme } = useAppTheme();
+  const { setCurrentProduct, setScanFeedback } = useCalories();
   const device = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
   const [isProcessing, setIsProcessing] = useState(false);
   const hasScannedRef = useRef(false);
 
-  const finishScan = useCallback(
-    (scanResult: ScanResult) => {
-      navigation.navigate('Home', { scanResult });
-    },
-    [navigation],
-  );
+  useEffect(() => {
+    if (isFocused) {
+      hasScannedRef.current = false;
+      setIsProcessing(false);
+    }
+  }, [isFocused]);
 
   const onCodeDetected = useCallback(
     async (barcode: string) => {
@@ -50,25 +55,27 @@ export function ScanScreen({ navigation }: ScanScreenProps) {
 
       try {
         const result = await lookupProduct(barcode);
-        finishScan({
+        setCurrentProduct(result.product);
+        setScanFeedback({
           barcode,
           errorMessage: result.product ? null : result.message ?? 'Unknown barcode.',
           infoMessage: result.product ? result.message ?? null : null,
-          product: result.product,
         });
+        navigation.navigate('Home');
       } catch (error) {
-        finishScan({
+        setCurrentProduct(null);
+        setScanFeedback({
           barcode,
           errorMessage:
             error instanceof Error
               ? error.message
               : 'Something went wrong. Please try scanning again.',
           infoMessage: null,
-          product: null,
         });
+        navigation.navigate('Home');
       }
     },
-    [finishScan, isProcessing],
+    [isProcessing, navigation, setCurrentProduct, setScanFeedback],
   );
 
   const codeScanner = useCodeScanner({
@@ -98,33 +105,35 @@ export function ScanScreen({ navigation }: ScanScreenProps) {
   }, [requestPermission]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>Back</Text>
+        <Text style={[styles.headerTitle, { color: theme.colors.textPrimary }]}>Scan a product</Text>
+        <Pressable
+          style={[styles.backButton, { borderColor: theme.colors.cardBorder }]}
+          onPress={() => navigation.navigate('Home')}>
+          <Text style={[styles.backButtonText, { color: theme.colors.textSecondary }]}>Close</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>Scan Product</Text>
       </View>
 
       {!hasPermission ? (
-        <View style={styles.permissionCard}>
-          <Text style={styles.permissionTitle}>Camera access needed</Text>
-          <Text style={styles.permissionText}>
+        <GlassCard style={styles.permissionCard}>
+          <Text style={[styles.permissionTitle, { color: theme.colors.textPrimary }]}>Camera access needed</Text>
+          <Text style={[styles.permissionText, { color: theme.colors.textSecondary }]}>
             ByteCal uses your camera to scan food barcodes.
           </Text>
-          <Pressable style={styles.permissionButton} onPress={handleRequestPermission}>
+          <Pressable style={[styles.permissionButton, { backgroundColor: theme.colors.accent }]} onPress={handleRequestPermission}>
             <Text style={styles.permissionButtonText}>Allow Camera</Text>
           </Pressable>
-        </View>
+        </GlassCard>
       ) : null}
 
       {hasPermission && !device ? (
-        <View style={styles.permissionCard}>
-          <Text style={styles.permissionTitle}>No camera found</Text>
-          <Text style={styles.permissionText}>
+        <GlassCard style={styles.permissionCard}>
+          <Text style={[styles.permissionTitle, { color: theme.colors.textPrimary }]}>No camera found</Text>
+          <Text style={[styles.permissionText, { color: theme.colors.textSecondary }]}>
             Run ByteCal on a physical device for barcode scanning.
           </Text>
-        </View>
+        </GlassCard>
       ) : null}
 
       {hasPermission && device ? (
@@ -137,7 +146,7 @@ export function ScanScreen({ navigation }: ScanScreenProps) {
           />
           <View style={styles.overlay}>
             <View style={styles.scanBox} />
-            <Text style={styles.scanText}>{isProcessing ? 'Processing...' : 'Scanning...'}</Text>
+            <Text style={styles.scanText}>{isProcessing ? 'Processing...' : 'Scan a product'}</Text>
           </View>
           {isProcessing ? <ActivityIndicator style={styles.loader} color="#12B76A" /> : null}
         </View>
@@ -148,13 +157,12 @@ export function ScanScreen({ navigation }: ScanScreenProps) {
 
 const styles = StyleSheet.create({
   backButton: {
-    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 9,
   },
   backButtonText: {
-    color: '#101828',
     fontSize: 14,
     fontWeight: '700',
   },
@@ -167,13 +175,12 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 12,
   },
   headerTitle: {
-    color: '#101828',
     fontSize: 22,
     fontWeight: '800',
   },
@@ -194,8 +201,8 @@ const styles = StyleSheet.create({
   },
   permissionButton: {
     alignItems: 'center',
-    backgroundColor: '#101828',
     borderRadius: 16,
+    marginTop: 6,
     paddingVertical: 14,
   },
   permissionButtonText: {
@@ -204,29 +211,21 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   permissionCard: {
-    backgroundColor: '#F2F4F7',
-    borderColor: '#EAECF0',
-    borderRadius: 32,
-    borderWidth: 1,
-    gap: 12,
+    gap: 14,
     margin: 20,
-    minHeight: 260,
-    padding: 24,
+    minHeight: 220,
     justifyContent: 'center',
   },
   permissionText: {
-    color: '#667085',
     fontSize: 15,
     fontWeight: '500',
     lineHeight: 22,
   },
   permissionTitle: {
-    color: '#101828',
     fontSize: 22,
     fontWeight: '900',
   },
   safeArea: {
-    backgroundColor: '#F9FAFB',
     flex: 1,
   },
   scanBox: {
