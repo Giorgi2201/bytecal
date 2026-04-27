@@ -1,51 +1,47 @@
 import React, { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
-  Easing,
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
-  withSequence,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import { BlurView } from '@react-native-community/blur';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import IonIcons from '@react-native-vector-icons/ionicons';
+import {
+  Clock3,
+  Home,
+  ScanLine,
+  Settings,
+} from 'lucide-react-native';
 import { useAppTheme } from '../theme/ThemeContext';
 
-type AnimType = 'bounce' | 'pulse' | 'slideUp' | 'rotate';
-
 type TabConfig = {
-  iconActive: string;
-  iconInactive: string;
-  animation: AnimType;
+  icon: React.ComponentType<{
+    color: string;
+    size?: number;
+    strokeWidth?: number;
+  }>;
   label: string;
 };
 
 const TAB_CONFIG: Record<string, TabConfig> = {
   History: {
-    animation: 'slideUp',
-    iconActive: 'time',
-    iconInactive: 'time-outline',
+    icon: Clock3,
     label: 'History',
   },
   Home: {
-    animation: 'bounce',
-    iconActive: 'home',
-    iconInactive: 'home-outline',
+    icon: Home,
     label: 'Home',
   },
   Scan: {
-    animation: 'pulse',
-    iconActive: 'scan',
-    iconInactive: 'scan-outline',
+    icon: ScanLine,
     label: 'Scan',
   },
   Settings: {
-    animation: 'rotate',
-    iconActive: 'settings',
-    iconInactive: 'settings-outline',
+    icon: Settings,
     label: 'Settings',
   },
 };
@@ -73,56 +69,23 @@ function TabButton({
   onLongPress,
   accessibilityLabel,
 }: TabButtonProps) {
-  const scale = useSharedValue(1);
-  const translateY = useSharedValue(0);
-  const rotateDeg = useSharedValue(0);
+  const progress = useSharedValue(0);
 
   useEffect(() => {
-    if (!focused) {
-      return;
-    }
-
-    switch (config.animation) {
-      case 'bounce':
-        scale.value = withSequence(
-          withSpring(1.28, { damping: 4, stiffness: 320 }),
-          withSpring(1, { damping: 12, stiffness: 220 }),
-        );
-        break;
-
-      case 'pulse':
-        scale.value = withSequence(
-          withTiming(1.22, { duration: 90, easing: Easing.out(Easing.quad) }),
-          withTiming(0.92, { duration: 80, easing: Easing.in(Easing.quad) }),
-          withSpring(1, { damping: 14, stiffness: 240 }),
-        );
-        break;
-
-      case 'slideUp':
-        translateY.value = withSequence(
-          withTiming(7, { duration: 0 }),
-          withSpring(0, { damping: 11, stiffness: 200 }),
-        );
-        break;
-
-      case 'rotate':
-        rotateDeg.value = withSequence(
-          withTiming(-18, { duration: 80, easing: Easing.out(Easing.quad) }),
-          withSpring(0, { damping: 8, stiffness: 180 }),
-        );
-        break;
-    }
-  }, [config.animation, focused, rotateDeg, scale, translateY]);
+    progress.value = focused
+      ? withSpring(1, { damping: 15, stiffness: 240 })
+      : withTiming(0, { duration: 180 });
+  }, [focused, progress]);
 
   const animatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.value, [0, 1], [0.8, 1]),
     transform: [
-      { scale: scale.value },
-      { translateY: translateY.value },
-      { rotate: `${rotateDeg.value}deg` },
+      { scale: interpolate(progress.value, [0, 1], [1, 1.08]) },
+      { translateY: interpolate(progress.value, [0, 1], [0, -3]) },
     ],
   }));
 
-  const iconName = focused ? config.iconActive : config.iconInactive;
+  const Icon = config.icon;
   const iconColor = focused ? accentColor : inactiveColor;
 
   return (
@@ -140,7 +103,7 @@ function TabButton({
           focused && { borderColor: cardBorder },
           animatedStyle,
         ]}>
-        <IonIcons name={iconName} size={22} color={iconColor} />
+        <Icon color={iconColor} size={22} strokeWidth={2} />
         <Text
           style={[
             styles.label,
@@ -180,9 +143,7 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
               const focused = state.index === index;
               const { options } = descriptors[route.key];
               const config = TAB_CONFIG[route.name] ?? {
-                animation: 'bounce' as AnimType,
-                iconActive: 'ellipse',
-                iconInactive: 'ellipse-outline',
+                icon: Home,
                 label: route.name,
               };
 
