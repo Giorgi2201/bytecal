@@ -8,6 +8,7 @@ import {
   useCameraDevice,
   useCodeScanner,
 } from 'react-native-vision-camera';
+import { useAppTheme } from '../theme/ThemeContext';
 
 type ScannerViewProps = {
   isActive: boolean;
@@ -29,6 +30,7 @@ export function ScannerView({
   onRequestPermission,
   onBarcodeScanned,
 }: ScannerViewProps) {
+  const { theme } = useAppTheme();
   const device = useCameraDevice('back');
   const codeScanner = useCodeScanner({
     codeTypes: supportedCodeTypes,
@@ -43,12 +45,12 @@ export function ScannerView({
 
   if (permissionStatus !== 'granted') {
     return (
-      <View style={styles.permissionCard}>
-        <Text style={styles.permissionTitle}>Camera access needed</Text>
-        <Text style={styles.permissionText}>
+      <View style={[styles.permissionCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}>
+        <Text style={[styles.permissionTitle, { color: theme.colors.textPrimary }]}>Camera access needed</Text>
+        <Text style={[styles.permissionText, { color: theme.colors.textSecondary }]}>
           ByteCal uses your camera to scan food barcodes.
         </Text>
-        <Pressable style={styles.permissionButton} onPress={onRequestPermission}>
+        <Pressable style={[styles.permissionButton, { backgroundColor: theme.colors.accent }]} onPress={onRequestPermission}>
           <Text style={styles.permissionButtonText}>Allow Camera</Text>
         </Pressable>
       </View>
@@ -57,9 +59,9 @@ export function ScannerView({
 
   if (!device) {
     return (
-      <View style={styles.permissionCard}>
-        <Text style={styles.permissionTitle}>No camera found</Text>
-        <Text style={styles.permissionText}>
+      <View style={[styles.permissionCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}>
+        <Text style={[styles.permissionTitle, { color: theme.colors.textPrimary }]}>No camera found</Text>
+        <Text style={[styles.permissionText, { color: theme.colors.textSecondary }]}>
           Run ByteCal on a physical iPhone for barcode scanning.
         </Text>
       </View>
@@ -101,7 +103,6 @@ const styles = StyleSheet.create({
   },
   permissionButton: {
     alignItems: 'center',
-    backgroundColor: '#101828',
     borderRadius: 16,
     paddingVertical: 14,
   },
@@ -111,8 +112,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   permissionCard: {
-    backgroundColor: '#F2F4F7',
-    borderColor: '#EAECF0',
     borderRadius: 32,
     borderWidth: 1,
     gap: 12,
@@ -121,13 +120,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   permissionText: {
-    color: '#667085',
     fontSize: 15,
     fontWeight: '500',
     lineHeight: 22,
   },
   permissionTitle: {
-    color: '#101828',
     fontSize: 22,
     fontWeight: '900',
   },

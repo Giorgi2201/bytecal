@@ -6,8 +6,6 @@ import { useAppTheme } from '../theme/ThemeContext';
 export function SettingsScreen() {
   const { theme, themePreference, setThemePreference, unit, setUnit } = useAppTheme();
   const manualDarkEnabled = themePreference === 'dark';
-  const inactiveUnitStyle =
-    theme.blurType === 'dark' ? styles.unitTextInactiveDark : styles.unitTextInactiveLight;
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
@@ -39,28 +37,22 @@ export function SettingsScreen() {
             <Text style={[styles.rowLabel, { color: theme.colors.textPrimary }]}>Energy Unit</Text>
             <View style={styles.unitControls}>
               <Pressable
-                style={[styles.unitButton, unit === 'kcal' && { backgroundColor: theme.colors.accent }]}
+                style={[
+                  styles.unitButton,
+                  { backgroundColor: unit === 'kcal' ? theme.colors.accent : theme.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' },
+                ]}
                 onPress={() => setUnit('kcal')}>
-                <Text
-                  style={[
-                    styles.unitText,
-                    unit === 'kcal'
-                      ? styles.unitTextActive
-                      : inactiveUnitStyle,
-                  ]}>
+                <Text style={[styles.unitText, { color: unit === 'kcal' ? '#FFFFFF' : theme.colors.textPrimary }]}>
                   kcal
                 </Text>
               </Pressable>
               <Pressable
-                style={[styles.unitButton, unit === 'kJ' && { backgroundColor: theme.colors.accent }]}
+                style={[
+                  styles.unitButton,
+                  { backgroundColor: unit === 'kJ' ? theme.colors.accent : theme.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' },
+                ]}
                 onPress={() => setUnit('kJ')}>
-                <Text
-                  style={[
-                    styles.unitText,
-                    unit === 'kJ'
-                      ? styles.unitTextActive
-                      : inactiveUnitStyle,
-                  ]}>
+                <Text style={[styles.unitText, { color: unit === 'kJ' ? '#FFFFFF' : theme.colors.textPrimary }]}>
                   kJ
                 </Text>
               </Pressable>
@@ -127,15 +119,6 @@ const styles = StyleSheet.create({
   unitText: {
     fontSize: 13,
     fontWeight: '700',
-  },
-  unitTextActive: {
-    color: '#FFFFFF',
-  },
-  unitTextInactiveDark: {
-    color: '#F4F7FF',
-  },
-  unitTextInactiveLight: {
-    color: '#101528',
   },
   versionText: {
     fontSize: 16,

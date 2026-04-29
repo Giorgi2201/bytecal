@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { GlassCard } from '../components/GlassCard';
 import { useCalories } from '../store/CalorieContext';
 import { useAppTheme } from '../theme/ThemeContext';
@@ -51,9 +51,11 @@ export function HomeScreen() {
               <Text style={[styles.productMeta, { color: theme.colors.textSecondary }]}>
                 {Math.round(currentProduct.calories)} kcal
               </Text>
-              <Text style={[styles.addText, { color: theme.colors.accent }]} onPress={handleAddProduct}>
-                Add to Daily Intake
-              </Text>
+              <Pressable onPress={handleAddProduct} style={styles.addButton}>
+                <Text style={[styles.addText, { color: theme.colors.accent }]}>
+                  Add to Daily Intake
+                </Text>
+              </Pressable>
             </>
           ) : (
             <Text style={[styles.placeholderText, { color: theme.colors.textSecondary }]}>
@@ -77,10 +79,13 @@ export function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  addButton: {
+    alignSelf: 'flex-start',
+    marginTop: 14,
+  },
   addText: {
     fontSize: 15,
     fontWeight: '700',
-    marginTop: 14,
   },
   content: {
     gap: 16,
@@ -99,7 +104,7 @@ const styles = StyleSheet.create({
   productMeta: {
     fontSize: 14,
     fontWeight: '500',
-    marginTop: 3,
+    marginTop: 4,
   },
   productName: {
     fontSize: 24,
@@ -115,7 +120,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: '800',
     letterSpacing: -0.8,
-    marginBottom: 2,
+    marginBottom: 8,
   },
   sectionLabel: {
     fontSize: 12,
@@ -141,7 +146,7 @@ const styles = StyleSheet.create({
   totalUnit: {
     fontSize: 20,
     fontWeight: '700',
-    marginTop: 12,
+    marginTop: 6,
   },
   totalValue: {
     fontSize: 62,

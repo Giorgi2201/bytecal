@@ -175,14 +175,15 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 12,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 28,
     fontWeight: '800',
+    letterSpacing: -0.5,
   },
   loader: {
     bottom: 26,

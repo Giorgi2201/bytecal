@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { Product } from '../types/product';
+import { useAppTheme } from '../theme/ThemeContext';
 
 type ProductCardProps = {
   product: Product | null;
@@ -21,30 +22,34 @@ export function ProductCard({
   errorMessage,
   onAdd,
 }: ProductCardProps) {
+  const { theme } = useAppTheme();
+
+  const cardStyle = [styles.card, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder, shadowColor: theme.colors.shadow }];
+
   if (isLoading) {
     return (
-      <View style={styles.card}>
-        <ActivityIndicator color="#12B76A" />
-        <Text style={styles.mutedText}>Looking up product...</Text>
+      <View style={cardStyle}>
+        <ActivityIndicator color={theme.colors.accent} />
+        <Text style={[styles.mutedText, { color: theme.colors.textSecondary }]}>Looking up product...</Text>
       </View>
     );
   }
 
   if (errorMessage) {
     return (
-      <View style={styles.card}>
-        <Text style={styles.label}>Scan result</Text>
-        <Text style={styles.errorText}>{errorMessage}</Text>
+      <View style={cardStyle}>
+        <Text style={[styles.label, { color: theme.colors.textSecondary }]}>Scan result</Text>
+        <Text style={[styles.errorText, { color: theme.colors.danger }]}>{errorMessage}</Text>
       </View>
     );
   }
 
   if (!product) {
     return (
-      <View style={styles.card}>
-        <Text style={styles.label}>Ready to scan</Text>
-        <Text style={styles.emptyTitle}>Tap Scan Product to start.</Text>
-        <Text style={styles.mutedText}>
+      <View style={cardStyle}>
+        <Text style={[styles.label, { color: theme.colors.textSecondary }]}>Ready to scan</Text>
+        <Text style={[styles.emptyTitle, { color: theme.colors.textPrimary }]}>Tap Scan Product to start.</Text>
+        <Text style={[styles.mutedText, { color: theme.colors.textSecondary }]}>
           ByteCal scans EAN and UPC barcodes from packaged foods.
         </Text>
       </View>
@@ -52,16 +57,16 @@ export function ProductCard({
   }
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.label}>Scanned product</Text>
-      <Text style={styles.name}>{product.name}</Text>
-      <Text style={styles.meta}>Barcode {product.barcode}</Text>
-      <Text style={styles.meta}>Source: {product.source}</Text>
+    <View style={cardStyle}>
+      <Text style={[styles.label, { color: theme.colors.textSecondary }]}>Scanned product</Text>
+      <Text style={[styles.name, { color: theme.colors.textPrimary }]}>{product.name}</Text>
+      <Text style={[styles.meta, { color: theme.colors.textSecondary }]}>Barcode {product.barcode}</Text>
+      <Text style={[styles.meta, { color: theme.colors.textSecondary }]}>Source: {product.source}</Text>
       <View style={styles.calorieRow}>
-        <Text style={styles.calories}>{Math.round(product.calories)}</Text>
-        <Text style={styles.calorieUnit}>kcal</Text>
+        <Text style={[styles.calories, { color: theme.colors.textPrimary }]}>{Math.round(product.calories)}</Text>
+        <Text style={[styles.calorieUnit, { color: theme.colors.textSecondary }]}>kcal</Text>
       </View>
-      <Pressable style={styles.button} onPress={onAdd}>
+      <Pressable style={[styles.button, { backgroundColor: theme.colors.accent }]} onPress={onAdd}>
         <Text style={styles.buttonText}>Add to Daily Intake</Text>
       </Pressable>
     </View>
@@ -71,7 +76,6 @@ export function ProductCard({
 const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
-    backgroundColor: '#12B76A',
     borderRadius: 18,
     marginTop: 20,
     paddingVertical: 15,
@@ -88,38 +92,34 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   calories: {
-    color: '#101828',
     fontSize: 44,
     fontWeight: '900',
     letterSpacing: -1.5,
   },
   calorieUnit: {
-    color: '#667085',
     fontSize: 16,
     fontWeight: '700',
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#EAECF0',
     borderRadius: 28,
     borderWidth: 1,
     padding: 22,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
   },
   emptyTitle: {
-    color: '#101828',
     fontSize: 20,
     fontWeight: '800',
     lineHeight: 26,
     marginBottom: 8,
   },
   errorText: {
-    color: '#B42318',
     fontSize: 17,
     fontWeight: '700',
     lineHeight: 24,
   },
   label: {
-    color: '#667085',
     fontSize: 13,
     fontWeight: '800',
     letterSpacing: 0.5,
@@ -127,21 +127,18 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   meta: {
-    color: '#667085',
     fontSize: 14,
     fontWeight: '600',
     lineHeight: 20,
     marginTop: 6,
   },
   mutedText: {
-    color: '#667085',
     fontSize: 15,
     fontWeight: '500',
     lineHeight: 22,
     marginTop: 8,
   },
   name: {
-    color: '#101828',
     fontSize: 24,
     fontWeight: '900',
     letterSpacing: -0.4,

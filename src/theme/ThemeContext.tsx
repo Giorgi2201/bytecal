@@ -22,7 +22,9 @@ type AppTheme = {
     textPrimary: string;
     textSecondary: string;
     accent: string;
+    shadow: string;
     tabBar: string;
+    tabBarActive: string;
     tabBarBorder: string;
     success: string;
     danger: string;
@@ -44,6 +46,7 @@ const UNIT_PREFERENCE_KEY = 'bytecal:energy-unit';
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 const createTheme = (isDark: boolean): AppTheme => ({
+  isDark,
   blurType: isDark ? 'dark' : 'light',
   colors: {
     accent: '#5E8BFF',
@@ -51,8 +54,10 @@ const createTheme = (isDark: boolean): AppTheme => ({
     card: isDark ? 'rgba(28, 34, 54, 0.6)' : 'rgba(255, 255, 255, 0.65)',
     cardBorder: isDark ? 'rgba(166, 180, 220, 0.18)' : 'rgba(255, 255, 255, 0.7)',
     danger: isDark ? '#FF8D95' : '#D64559',
+    shadow: isDark ? '#000000' : '#1A2340',
     success: isDark ? '#88E0B3' : '#1B9C62',
     tabBar: isDark ? 'rgba(15, 19, 34, 0.85)' : 'rgba(248, 250, 255, 0.86)',
+    tabBarActive: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(94, 139, 255, 0.1)',
     tabBarBorder: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(90, 110, 154, 0.14)',
     textPrimary: isDark ? '#F4F7FF' : '#101528',
     textSecondary: isDark ? '#A8B3D9' : '#5B678A',

@@ -29,7 +29,6 @@ if (app.Environment.IsDevelopment())
     app.UseCors("DevelopmentMobileClient");
 }
 
-app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();

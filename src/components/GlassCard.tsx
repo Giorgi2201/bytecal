@@ -11,7 +11,7 @@ export function GlassCard({ children, style }: GlassCardProps) {
   const { theme } = useAppTheme();
 
   return (
-    <View style={[styles.container, { borderColor: theme.colors.cardBorder }, style]}>
+    <View style={[styles.container, { borderColor: theme.colors.cardBorder, shadowColor: theme.colors.shadow }, style]}>
       <BlurView
         style={StyleSheet.absoluteFill}
         blurAmount={24}
@@ -29,7 +29,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     overflow: 'hidden',
-    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 14 },
     shadowOpacity: 0.12,
     shadowRadius: 24,

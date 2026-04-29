@@ -1,42 +1,74 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { GlassCard } from '../components/GlassCard';
+import { useCalories } from '../store/CalorieContext';
 import { useAppTheme } from '../theme/ThemeContext';
 
-const placeholderEntries = [
-  { id: '1', title: 'Greek Yogurt', calories: 128, time: '08:42' },
-  { id: '2', title: 'Chicken Wrap', calories: 432, time: '13:10' },
-  { id: '3', title: 'Granola Bar', calories: 189, time: '16:24' },
-];
+function formatEntryTime(isoTimestamp: string): string {
+  const date = new Date(isoTimestamp);
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+  const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if (isToday) {
+    return timeStr;
+  }
+
+  const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  return `${dateStr} · ${timeStr}`;
+}
 
 export function HistoryScreen() {
   const { theme, unit } = useAppTheme();
+  const { entries, dailyTotal } = useCalories();
+
+  const formattedTotal = useMemo(() => {
+    const value = unit === 'kJ' ? Math.round(dailyTotal * 4.184) : Math.round(dailyTotal);
+    return `${value} ${unit}`;
+  }, [dailyTotal, unit]);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={[styles.title, { color: theme.colors.textPrimary }]}>History</Text>
         <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-          Recent entries will sync with backend in a future update.
+          {entries.length > 0
+            ? `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'} · ${formattedTotal} today`
+            : 'Add products from the Home tab to track your intake.'}
         </Text>
 
-        {placeholderEntries.map(entry => (
-          <GlassCard key={entry.id}>
-            <View style={styles.cardRow}>
-              <View>
-                <Text style={[styles.entryTitle, { color: theme.colors.textPrimary }]}>
-                  {entry.title}
-                </Text>
-                <Text style={[styles.entryTime, { color: theme.colors.textSecondary }]}>
-                  {entry.time}
-                </Text>
-              </View>
-              <Text style={[styles.entryCalories, { color: theme.colors.textPrimary }]}>
-                {unit === 'kJ' ? Math.round(entry.calories * 4.184) : entry.calories} {unit}
-              </Text>
-            </View>
+        {entries.length === 0 ? (
+          <GlassCard>
+            <Text style={[styles.emptyTitle, { color: theme.colors.textPrimary }]}>No entries yet</Text>
+            <Text style={[styles.emptyBody, { color: theme.colors.textSecondary }]}>
+              Scan a barcode, then tap "Add to Daily Intake" on the Home tab. Your entries will appear here.
+            </Text>
           </GlassCard>
-        ))}
+        ) : (
+          entries.map(entry => {
+            const calories = unit === 'kJ'
+              ? Math.round(entry.product.calories * 4.184)
+              : Math.round(entry.product.calories);
+
+            return (
+              <GlassCard key={entry.id}>
+                <View style={styles.cardRow}>
+                  <View style={styles.entryInfo}>
+                    <Text style={[styles.entryTitle, { color: theme.colors.textPrimary }]} numberOfLines={1}>
+                      {entry.product.name}
+                    </Text>
+                    <Text style={[styles.entryTime, { color: theme.colors.textSecondary }]}>
+                      {formatEntryTime(entry.timestamp)}
+                    </Text>
+                  </View>
+                  <Text style={[styles.entryCalories, { color: theme.colors.textPrimary }]}>
+                    {calories} {unit}
+                  </Text>
+                </View>
+              </GlassCard>
+            );
+          })
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -47,15 +79,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 12,
   },
   content: {
-    gap: 12,
+    gap: 16,
     padding: 20,
     paddingBottom: 120,
+  },
+  emptyBody: {
+    fontSize: 15,
+    fontWeight: '500',
+    lineHeight: 22,
+    marginTop: 8,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '800',
   },
   entryCalories: {
     fontSize: 15,
     fontWeight: '700',
+    flexShrink: 0,
+  },
+  entryInfo: {
+    flex: 1,
   },
   entryTime: {
     fontSize: 13,
@@ -72,7 +119,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     lineHeight: 20,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   title: {
     fontSize: 30,

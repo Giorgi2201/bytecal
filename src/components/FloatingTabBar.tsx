@@ -62,6 +62,7 @@ function TabButton({
   onLongPress,
   accessibilityLabel,
 }: TabButtonProps) {
+  const { theme } = useAppTheme();
   const progress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -103,8 +104,7 @@ function TabButton({
       <Animated.View
         style={[
           styles.tabInner,
-          focused && styles.tabInnerActive,
-          focused && { borderColor: cardBorder },
+          focused && { backgroundColor: theme.colors.tabBarActive, borderColor: cardBorder },
           animatedStyle,
         ]}>
         <Icon color={iconColor} size={22} strokeWidth={2} />
@@ -128,7 +128,7 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
   return (
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
       <View style={[styles.wrapper, { bottom }]}>
-        <View style={[styles.island, { borderColor: theme.colors.tabBarBorder }]}>
+          <View style={[styles.island, { borderColor: theme.colors.tabBarBorder, shadowColor: theme.colors.shadow }]}>
           <BlurView
             blurAmount={28}
             blurType={theme.blurType}
@@ -194,7 +194,6 @@ const styles = StyleSheet.create({
     borderRadius: 34,
     borderWidth: 1,
     overflow: 'hidden',
-    shadowColor: '#060912',
     shadowOffset: { height: 18, width: 0 },
     shadowOpacity: 0.25,
     shadowRadius: 32,
@@ -221,9 +220,6 @@ const styles = StyleSheet.create({
     minWidth: 68,
     paddingHorizontal: 10,
     paddingVertical: 8,
-  },
-  tabInnerActive: {
-    backgroundColor: 'rgba(255,255,255,0.13)',
   },
   tabPressable: {
     borderRadius: 22,
