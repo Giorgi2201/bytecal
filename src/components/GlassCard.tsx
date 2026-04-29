@@ -5,9 +5,10 @@ import { useAppTheme } from '../theme/ThemeContext';
 
 type GlassCardProps = PropsWithChildren<{
   style?: StyleProp<ViewStyle>;
+  contentStyle?: StyleProp<ViewStyle>;
 }>;
 
-export function GlassCard({ children, style }: GlassCardProps) {
+export function GlassCard({ children, style, contentStyle }: GlassCardProps) {
   const { theme } = useAppTheme();
 
   return (
@@ -19,7 +20,7 @@ export function GlassCard({ children, style }: GlassCardProps) {
         reducedTransparencyFallbackColor={theme.colors.card}
       />
       <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.colors.card }]} />
-      <View style={styles.content}>{children}</View>
+      <View style={[styles.content, contentStyle]}>{children}</View>
     </View>
   );
 }

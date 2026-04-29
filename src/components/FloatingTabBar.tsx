@@ -4,9 +4,9 @@ import { BlurView } from '@react-native-community/blur';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
+  CalendarDays,
   Clock3,
   Home,
-  ScanLine,
   Settings,
 } from 'lucide-react-native';
 import { useAppTheme } from '../theme/ThemeContext';
@@ -29,9 +29,9 @@ const TAB_CONFIG: Record<string, TabConfig> = {
     icon: Home,
     label: 'Home',
   },
-  Scan: {
-    icon: ScanLine,
-    label: 'Scan',
+  PastDays: {
+    icon: CalendarDays,
+    label: 'Past Days',
   },
   Settings: {
     icon: Settings,
@@ -82,11 +82,9 @@ function TabButton({
     }
   }, [focused, progress]);
 
-  const animatedStyle = {
-    opacity: progress.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }),
+  const iconAnimatedStyle = {
     transform: [
-      { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] }) },
-      { translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [0, -3] }) },
+      { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [1, 1.2] }) },
     ],
   };
 
@@ -101,13 +99,14 @@ function TabButton({
       onLongPress={onLongPress}
       onPress={onPress}
       style={styles.tabPressable}>
-      <Animated.View
+      <View
         style={[
           styles.tabInner,
           focused && { backgroundColor: theme.colors.tabBarActive, borderColor: cardBorder },
-          animatedStyle,
         ]}>
-        <Icon color={iconColor} size={22} strokeWidth={2} />
+        <Animated.View style={iconAnimatedStyle}>
+          <Icon color={iconColor} size={22} strokeWidth={2} />
+        </Animated.View>
         <Text
           style={[
             styles.label,
@@ -115,7 +114,7 @@ function TabButton({
           ]}>
           {config.label}
         </Text>
-      </Animated.View>
+      </View>
     </Pressable>
   );
 }

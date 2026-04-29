@@ -1,6 +1,11 @@
+export type RootStackParamList = {
+  Main: undefined;
+  Scan: undefined;
+};
+
 export type RootTabParamList = {
   Home: undefined;
-  Scan: undefined;
   History: undefined;
+  PastDays: undefined;
   Settings: undefined;
 };

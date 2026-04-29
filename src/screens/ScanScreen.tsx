@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
-import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Camera,
   Code,
@@ -18,13 +18,13 @@ import {
   useCameraPermission,
   useCodeScanner,
 } from 'react-native-vision-camera';
-import { RootTabParamList } from '../navigation/types';
+import { RootStackParamList } from '../navigation/types';
 import { lookupProduct } from '../services/api';
 import { useCalories } from '../store/CalorieContext';
 import { GlassCard } from '../components/GlassCard';
 import { useAppTheme } from '../theme/ThemeContext';
 
-type ScanScreenProps = BottomTabScreenProps<RootTabParamList, 'Scan'>;
+type ScanScreenProps = NativeStackScreenProps<RootStackParamList, 'Scan'>;
 
 const supportedCodeTypes: CodeType[] = ['ean-13', 'ean-8', 'upc-a', 'upc-e'];
 
@@ -61,7 +61,7 @@ export function ScanScreen({ navigation }: ScanScreenProps) {
           errorMessage: result.product ? null : result.message ?? 'Unknown barcode.',
           infoMessage: result.product ? result.message ?? null : null,
         });
-        navigation.navigate('Home');
+        navigation.goBack();
       } catch (error) {
         setCurrentProduct(null);
         setScanFeedback({
@@ -72,7 +72,7 @@ export function ScanScreen({ navigation }: ScanScreenProps) {
               : 'Something went wrong. Please try scanning again.',
           infoMessage: null,
         });
-        navigation.navigate('Home');
+        navigation.goBack();
       }
     },
     [isProcessing, navigation, setCurrentProduct, setScanFeedback],
@@ -110,7 +110,7 @@ export function ScanScreen({ navigation }: ScanScreenProps) {
         <Text style={[styles.headerTitle, { color: theme.colors.textPrimary }]}>Scan a product</Text>
         <Pressable
           style={[styles.backButton, { borderColor: theme.colors.cardBorder }]}
-          onPress={() => navigation.navigate('Home')}>
+          onPress={() => navigation.goBack()}>
           <Text style={[styles.backButtonText, { color: theme.colors.textSecondary }]}>Close</Text>
         </Pressable>
       </View>
