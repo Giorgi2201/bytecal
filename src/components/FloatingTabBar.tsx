@@ -1,12 +1,5 @@
-import React, { useEffect } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, {
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -69,21 +62,32 @@ function TabButton({
   onLongPress,
   accessibilityLabel,
 }: TabButtonProps) {
-  const progress = useSharedValue(0);
+  const progress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    progress.value = focused
-      ? withSpring(1, { damping: 15, stiffness: 240 })
-      : withTiming(0, { duration: 180 });
+    if (focused) {
+      Animated.spring(progress, {
+        toValue: 1,
+        damping: 15,
+        stiffness: 240,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(progress, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }).start();
+    }
   }, [focused, progress]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 1], [0.8, 1]),
+  const animatedStyle = {
+    opacity: progress.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }),
     transform: [
-      { scale: interpolate(progress.value, [0, 1], [1, 1.08]) },
-      { translateY: interpolate(progress.value, [0, 1], [0, -3]) },
+      { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] }) },
+      { translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [0, -3] }) },
     ],
-  }));
+  };
 
   const Icon = config.icon;
   const iconColor = focused ? accentColor : inactiveColor;
