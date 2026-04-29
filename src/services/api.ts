@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '@env';
 import { Product, ProductLookupResult } from '../types/product';
 
-const API_BASE_URL = 'http://10.0.0.48:5166';
 const CACHE_PREFIX = 'bytecal:product:';
 
 type ProductResponse = {
